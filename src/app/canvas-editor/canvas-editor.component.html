@@ -1,0 +1,93 @@
+<div class="m-32 border rounded-lg">
+  <h1 class="border-b p-5">Digital Room – Karl Technical Exam</h1>
+  <div class="container p-5">
+    <div class="controls flex gap-2">
+        
+        <!-- Upload -->
+      <label
+        class="btn inline-flex items-center px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 cursor-pointer"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15"
+          />
+        </svg>
+        <span>Upload Image</span>
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onImageUpload($event)"
+          hidden
+        />
+      </label>
+
+      <!-- Add Text -->
+      <button
+        class="btn inline-flex items-center px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 cursor-pointer"
+        (click)="addText()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
+        </svg>
+        <span>Add Text</span>
+      </button>
+
+      <!-- Clear Canvas -->
+      <button
+        class="btn inline-flex items-center px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 cursor-pointer"
+        (click)="clearCanvas()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+          />
+        </svg>
+        <span>Clear Canvas</span>
+      </button>
+    </div>
+
+    <div class="canvas-container mt-5 flex gap-2">
+      <canvas
+        #canvas
+        width="1200"
+        height="600"
+        class="bg-black/10 rounded-xl border"
+      ></canvas>
+      <div>
+        <textarea
+          #textInput
+          class="w-full"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+</div>
