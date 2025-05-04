@@ -1,59 +1,27 @@
-# AngularTechExam
+## Karl Marx Roxas Technical Exam for Digital Room
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.8.
+I do not use any frameworks to demonstrate simplicity and performance.
 
-## Development server
+## Features
+- Upload and display images on the canvas.
+- Add and edit text objects.
+- Move, resize, and rotate objects.
+- Clear the canvas to start fresh.
 
-To start a local development server, run:
+## How to Use
+1. run ```npm run start``` or ```ng serve``` in root directory using terminal
+2. Use the "Upload Image" button to add an image to the canvas.
+3. Use the "Add Text" button to add a text object to the canvas.
+4. Drag objects to move them, use handles to resize, or rotate them using the rotation handle.
+5. Use the "Clear Canvas" button to remove all objects.
 
-```bash
-ng serve
-```
+### Libraries & APIs used
+- Tailwind CSS 4.1
+- Canvas API
+- File Reader API
+- HTML DOM API
+- Mouse Events
+- Keyboard Events
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Author
+Karl Marx Roxas
