@@ -1,7 +1,5 @@
 ## Karl Marx Roxas Technical Exam for Digital Room
 
-I do not use any frameworks to demonstrate simplicity and performance.
-
 ## Features
 - Upload and display images on the canvas.
 - Add and edit text objects.
