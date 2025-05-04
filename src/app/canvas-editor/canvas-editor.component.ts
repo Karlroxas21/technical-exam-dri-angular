@@ -123,7 +123,6 @@ export class CanvasEditorComponent implements OnInit {
             if (obj.type === 'text' && this.isInObject(mouseX, mouseY, obj)) {
                 this.selectedIndex = i;
                 obj.selected = true;
-                obj.isEditing = false;
                 this.enableTextEditing(obj);
                 return;
             }
@@ -392,9 +391,12 @@ export class CanvasEditorComponent implements OnInit {
         const textarea = this.textInputRef.nativeElement;
         obj.isEditing = true;
 
+        const canvasRect = canvas.getBoundingClientRect();
+
+        const centerX = obj.size.width / 2;
+        const centerY = obj.size.height / 2;
+
         textarea.style.position = 'absolute';
-        textarea.style.left = `${canvas.offsetLeft + obj.position.x}px`;
-        textarea.style.top = `${canvas.offsetTop + obj.position.y}px`;
         textarea.style.width = `${obj.size.width}px`;
         textarea.style.height = `${obj.size.height}px`;
         textarea.style.fontSize = `${obj.fontSize}px`;
@@ -406,11 +408,22 @@ export class CanvasEditorComponent implements OnInit {
         textarea.style.padding = '0';
         textarea.style.margin = '0';
         textarea.style.overflow = 'hidden';
-        textarea.style.display = 'block';
+        textarea.style.transformOrigin = `${centerX}px ${centerY}px`;
+
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        const textareaLeft = canvasRect.left + obj.position.x + scrollLeft;
+        const textareaTop = canvasRect.top + obj.position.y + scrollTop;
+
+        textarea.style.left = `${textareaLeft}px`;
+        textarea.style.top = `${textareaTop}px`;
+        textarea.style.transform = `rotate(${obj.rotation}rad)`;
+
         textarea.value = obj.text!;
+        textarea.style.display = 'block';
 
         textarea.focus();
-
         textarea.oninput = () => {
             obj.text = textarea.value;
             this.draw();
