@@ -17,9 +17,7 @@ interface CanvasObject {
     rotation: number;
     fontSize?: number;
     fontFamily?: string;
-    bold?: boolean,
-    italic?: boolean,
-    underline?: boolean,
+    initialRotation?: number;
     color?: string;
     selected: boolean;
     isEditing?: boolean;
@@ -46,6 +44,7 @@ export class CanvasEditorComponent implements OnInit {
     lastPos = { x: 0, y: 0 };
     resizeHandle = '';
     handleRadius = 8;
+    initialAngle = 0;
 
     ngOnInit() {
         const canvas = this.canvasRef.nativeElement;
@@ -96,9 +95,6 @@ export class CanvasEditorComponent implements OnInit {
             fontSize: 24,
             fontFamily: 'Arial',
             color: '#000',
-            bold: false,
-            italic: false,
-            underline: false,
             position: { x: canvas.width / 2, y: canvas.height / 2 },
             size: { width: 200, height: 50 },
             rotation: 0,
@@ -129,18 +125,22 @@ export class CanvasEditorComponent implements OnInit {
             if (handle) {
                 if (handle === 'rotate') {
                     this.isRotating = true;
+                    obj.initialRotation = obj.rotation;
+
+                    const centerX = obj.position.x + obj.size.width / 2;
+                    const centerY = obj.position.y + obj.size.height / 2;
+                    this.initialAngle = Math.atan2(mouseY - centerY, mouseX - centerX);
+
                 } else {
                     this.isResizing = true;
                     this.resizeHandle = handle;
 
                 }
-                // Hide the textarea during resizing
                 this.disableTextEditing();
                 return;
             }
         }
 
-        // Check if clicking on a text object
         for (let i = this.objects.length - 1; i >= 0; i--) {
             if (this.isInObject(mouseX, mouseY, this.objects[i])) {
                 const obj = this.objects[i];
@@ -159,7 +159,6 @@ export class CanvasEditorComponent implements OnInit {
             }
         }
 
-        // Deselect all objects if no object is clicked
         this.objects.forEach(obj => (obj.selected = false));
         this.selectedIndex = -1;
         this.disableTextEditing();
@@ -183,13 +182,8 @@ export class CanvasEditorComponent implements OnInit {
             if (this.selectedIndex > -1) {
                 const obj = this.objects[this.selectedIndex];
 
-                const cos = Math.cos(obj.rotation);
-                const sin = Math.sin(obj.rotation);
-                const localDx = dx * cos + dy * sin;
-                const localDy = -dx * sin + dy * cos;
-
-                obj.position.x += localDx;
-                obj.position.y += localDy;
+                obj.position.x += dx;
+                obj.position.y += dy;
             }
 
             this.lastPos = { x: mouseX, y: mouseY };
@@ -199,68 +193,63 @@ export class CanvasEditorComponent implements OnInit {
 
         if (this.isResizing && this.selectedIndex > -1) {
             const obj = this.objects[this.selectedIndex];
+
             const dx = mouseX - this.lastPos.x;
             const dy = mouseY - this.lastPos.y;
 
+            // Convert global delta to object-local coordinates
             const cos = Math.cos(-obj.rotation);
             const sin = Math.sin(-obj.rotation);
             const localDx = dx * cos - dy * sin;
             const localDy = dx * sin + dy * cos;
 
-            const aspectRatio = obj.size.width / obj.size.height;
-
+           
             switch (this.resizeHandle) {
                 case 'right':
-                    canvas.style.cursor = 'ew-resize';
                     obj.size.width += localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
                 case 'left':
-                    canvas.style.cursor = 'ew-resize'; 
-                    obj.position.x += localDx * cos - localDy * sin;
+                    obj.position.x += localDx * Math.cos(obj.rotation);
+                    obj.position.y += localDx * Math.sin(obj.rotation);
                     obj.size.width -= localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
                 case 'top':
-                    canvas.style.cursor = 'ns-resize';
-                    obj.position.y += localDx * sin + localDy * cos;
+                    obj.position.x += localDy * Math.sin(obj.rotation);
+                    obj.position.y -= localDy * Math.cos(obj.rotation);
                     obj.size.height -= localDy;
-                    obj.size.width = obj.size.height * aspectRatio;
+                    obj.size.width = obj.size.height;
                     break;
                 case 'bottom':
-                    canvas.style.cursor = 'ns-resize';
                     obj.size.height += localDy;
-                    obj.size.width = obj.size.height * aspectRatio;
+                    obj.size.width = obj.size.height;
                     break;
                 case 'top-left':
-                    canvas.style.cursor = 'nwse-resize'; 
-                    obj.position.x += localDx * cos - localDy * sin;
-                    obj.position.y += localDx * sin + localDy * cos;
+                    obj.position.x += localDx * Math.cos(obj.rotation) + localDy * Math.sin(obj.rotation);
+                    obj.position.y += localDy * Math.cos(obj.rotation) - localDx * Math.sin(obj.rotation);
                     obj.size.width -= localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
                 case 'bottom-right':
-                    canvas.style.cursor = 'nwse-resize';
                     obj.size.width += localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
                 case 'top-right':
-                    canvas.style.cursor = 'nesw-resize';
-                    obj.position.y += localDx * sin + localDy * cos;
+                    obj.position.y += localDy * Math.cos(obj.rotation) - localDx * Math.sin(obj.rotation);
                     obj.size.width += localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
                 case 'bottom-left':
-                    canvas.style.cursor = 'nesw-resize';
-                    obj.position.x += localDx * cos - localDy * sin;
+                    obj.position.x += localDx * Math.cos(obj.rotation);
+                    obj.position.y += localDx * Math.sin(obj.rotation);
                     obj.size.width -= localDx;
-                    obj.size.height = obj.size.width / aspectRatio;
+                    obj.size.height = obj.size.width;
                     break;
             }
 
             this.lastPos = { x: mouseX, y: mouseY };
             this.draw();
-            return;
         }
 
         if (this.isRotating && this.selectedIndex > -1) {
@@ -269,18 +258,18 @@ export class CanvasEditorComponent implements OnInit {
             const centerX = obj.position.x + obj.size.width / 2;
             const centerY = obj.position.y + obj.size.height / 2;
 
-            // angle between the mouse and the center of the object
-            const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
+            const currentAngle = Math.atan2(mouseY - centerY, mouseX - centerX);
 
-            const normalizedAngle = (angle + 2 * Math.PI) % (2 * Math.PI);
-            obj.rotation = normalizedAngle;
+            const angleDiff = currentAngle - this.initialAngle;
+
+            obj.rotation = obj.initialRotation! + angleDiff;
+
 
             this.lastPos = { x: mouseX, y: mouseY };
             this.draw();
             return;
         }
 
-        // if hovering over a resize or rotation handle
         if (this.selectedIndex > -1) {
             const obj = this.objects[this.selectedIndex];
             const handle = this.getResizeHandle(mouseX, mouseY, obj);
@@ -288,7 +277,7 @@ export class CanvasEditorComponent implements OnInit {
             if (handle) {
                 switch (handle) {
                     case 'rotate':
-                        canvas.style.cursor = 'crosshair'; 
+                        canvas.style.cursor = 'crosshair';
                         break;
                     case 'left':
                     case 'right':
@@ -310,9 +299,9 @@ export class CanvasEditorComponent implements OnInit {
                 return;
             }
 
-            // if hovering over the object
+            // Check if hovering over the object
             if (this.isInObject(mouseX, mouseY, obj)) {
-                canvas.style.cursor = 'move'; // Change cursor to "move" when hovering over the object
+                canvas.style.cursor = 'move';
                 return;
             }
         }
@@ -362,7 +351,7 @@ export class CanvasEditorComponent implements OnInit {
         };
 
         textarea.onblur = () => {
-            obj.isEditing = false; 
+            obj.isEditing = false;
             this.draw();
         };
     }
@@ -423,7 +412,7 @@ export class CanvasEditorComponent implements OnInit {
         const handles = {
             'rotate': { x: obj.position.x + obj.size.width / 2, y: obj.position.y - 30 },
             'left': { x: obj.position.x, y: obj.position.y + obj.size.height / 2 },
-            'right': { x: obj.position.x + obj.size.width, y: obj.position.y + obj.size.height / 2 }, 
+            'right': { x: obj.position.x + obj.size.width, y: obj.position.y + obj.size.height / 2 },
             'top': { x: obj.position.x + obj.size.width / 2, y: obj.position.y },
             'bottom': { x: obj.position.x + obj.size.width / 2, y: obj.position.y + obj.size.height },
             'top-left': { x: obj.position.x, y: obj.position.y },
@@ -471,15 +460,17 @@ export class CanvasEditorComponent implements OnInit {
 
     draw() {
         const canvas = this.canvasRef.nativeElement;
+        const ctx = canvas.getContext('2d');
         this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 
         this.objects.forEach((obj, index) => {
             this.ctx.save();
             const cx = obj.position.x + obj.size.width / 2;
             const cy = obj.position.y + obj.size.height / 2;
 
-            this.ctx.translate(cx, cy);
-            this.ctx.rotate(obj.rotation);
+            this.ctx.translate(obj.position.x + obj.size.width / 2, obj.position.y + obj.size.height / 2);
+            this.ctx.rotate(obj.rotation); // rotation in radians
             this.ctx.translate(-obj.size.width / 2, -obj.size.height / 2);
 
             if (obj.type === 'image') {
