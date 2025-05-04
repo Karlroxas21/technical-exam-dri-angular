@@ -110,6 +110,26 @@ export class CanvasEditorComponent implements OnInit {
         this.draw();
     }
 
+    @HostListener('dblclick', ['$event'])
+    onDoubleClick(e: MouseEvent) {
+        const canvas = this.canvasRef.nativeElement;
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Check if we clicked on a text object
+        for (let i = this.objects.length - 1; i >= 0; i--) {
+            const obj = this.objects[i];
+            if (obj.type === 'text' && this.isInObject(mouseX, mouseY, obj)) {
+                this.selectedIndex = i;
+                obj.selected = true;
+                obj.isEditing = false;
+                this.enableTextEditing(obj);
+                return;
+            }
+        }
+    }
+
     @HostListener('mousedown', ['$event'])
     onMouseDown(e: MouseEvent) {
         const canvas = this.canvasRef.nativeElement;
@@ -148,10 +168,10 @@ export class CanvasEditorComponent implements OnInit {
                 obj.selected = true;
                 this.selectedIndex = i;
 
-                if (obj.type === 'text') {
-                    console.log('Text object clicked:', obj);
-                    this.enableTextEditing(obj);
-                }
+                // if (obj.type === 'text') {
+                //     console.log('Text object clicked:', obj);
+                //     this.enableTextEditing(obj);
+                // }
 
                 this.isDragging = true;
                 this.draw();
@@ -195,38 +215,38 @@ export class CanvasEditorComponent implements OnInit {
         if (this.isResizing && this.selectedIndex > -1) {
             const obj = this.objects[this.selectedIndex];
             const rotationRad = obj.rotation;
-            
+
             const centerX = obj.position.x + obj.size.width / 2;
             const centerY = obj.position.y + obj.size.height / 2;
-            
-         
+
+
             const mx = mouseX - centerX;
             const my = mouseY - centerY;
-            
+
             const cos = Math.cos(-rotationRad);
             const sin = Math.sin(-rotationRad);
             const rmx = mx * cos - my * sin;
             const rmy = mx * sin + my * cos;
-            
+
             // previous mouse position relative to center
             const pmx = this.lastPos.x - centerX;
             const pmy = this.lastPos.y - centerY;
-            
+
             // rotate previous mouse position
             const rpmx = pmx * cos - pmy * sin;
             const rpmy = pmx * sin + pmy * cos;
-            
+
             // calculate change in position in rotated coordinate system
             const dx = rmx - rpmx;
             const dy = rmy - rpmy;
-            
+
             // maintain aspect ratio for images
             const aspectRatio = obj.type === 'image' ? obj.size.width / obj.size.height : 1;
-            
+
             // original dimensions
             const oldWidth = obj.size.width;
             const oldHeight = obj.size.height;
-            
+
             // Handle resize based on which handle was grabbed
             switch (this.resizeHandle) {
                 case 'right':
@@ -282,15 +302,15 @@ export class CanvasEditorComponent implements OnInit {
                     }
                     break;
             }
-            
+
             obj.size.width = Math.max(obj.size.width, 20);
             obj.size.height = Math.max(obj.size.height, 20);
-         
-            
+
+
             // keep object center
-            obj.position.x = centerX - obj.size.width/2;
-            obj.position.y = centerY - obj.size.height/2;
-            
+            obj.position.x = centerX - obj.size.width / 2;
+            obj.position.y = centerY - obj.size.height / 2;
+
             this.lastPos = { x: mouseX, y: mouseY };
             this.draw();
             return;
