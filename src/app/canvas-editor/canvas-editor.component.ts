@@ -191,67 +191,112 @@ export class CanvasEditorComponent implements OnInit {
             return;
         }
 
+        // Handle resize
         if (this.isResizing && this.selectedIndex > -1) {
             const obj = this.objects[this.selectedIndex];
-
-            const dx = mouseX - this.lastPos.x;
-            const dy = mouseY - this.lastPos.y;
-
-            // Convert global delta to object-local coordinates
-            const cos = Math.cos(-obj.rotation);
-            const sin = Math.sin(-obj.rotation);
-            const localDx = dx * cos - dy * sin;
-            const localDy = dx * sin + dy * cos;
-
-           
+            const rotationRad = obj.rotation;
+            
+            const centerX = obj.position.x + obj.size.width / 2;
+            const centerY = obj.position.y + obj.size.height / 2;
+            
+         
+            const mx = mouseX - centerX;
+            const my = mouseY - centerY;
+            
+            const cos = Math.cos(-rotationRad);
+            const sin = Math.sin(-rotationRad);
+            const rmx = mx * cos - my * sin;
+            const rmy = mx * sin + my * cos;
+            
+            // previous mouse position relative to center
+            const pmx = this.lastPos.x - centerX;
+            const pmy = this.lastPos.y - centerY;
+            
+            // rotate previous mouse position
+            const rpmx = pmx * cos - pmy * sin;
+            const rpmy = pmx * sin + pmy * cos;
+            
+            // calculate change in position in rotated coordinate system
+            const dx = rmx - rpmx;
+            const dy = rmy - rpmy;
+            
+            // maintain aspect ratio for images
+            const aspectRatio = obj.type === 'image' ? obj.size.width / obj.size.height : 1;
+            
+            // original dimensions
+            const oldWidth = obj.size.width;
+            const oldHeight = obj.size.height;
+            
+            // Handle resize based on which handle was grabbed
             switch (this.resizeHandle) {
                 case 'right':
-                    obj.size.width += localDx;
-                    obj.size.height = obj.size.width;
+                    obj.size.width += dx * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
                     break;
                 case 'left':
-                    obj.position.x += localDx * Math.cos(obj.rotation);
-                    obj.position.y += localDx * Math.sin(obj.rotation);
-                    obj.size.width -= localDx;
-                    obj.size.height = obj.size.width;
+                    obj.size.width -= dx * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
                     break;
                 case 'top':
-                    obj.position.x += localDy * Math.sin(obj.rotation);
-                    obj.position.y -= localDy * Math.cos(obj.rotation);
-                    obj.size.height -= localDy;
-                    obj.size.width = obj.size.height;
+                    obj.size.height -= dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.width = obj.size.height * aspectRatio;
+                    }
                     break;
                 case 'bottom':
-                    obj.size.height += localDy;
-                    obj.size.width = obj.size.height;
+                    obj.size.height += dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.width = obj.size.height * aspectRatio;
+                    }
                     break;
                 case 'top-left':
-                    obj.position.x += localDx * Math.cos(obj.rotation) + localDy * Math.sin(obj.rotation);
-                    obj.position.y += localDy * Math.cos(obj.rotation) - localDx * Math.sin(obj.rotation);
-                    obj.size.width -= localDx;
-                    obj.size.height = obj.size.width;
-                    break;
-                case 'bottom-right':
-                    obj.size.width += localDx;
-                    obj.size.height = obj.size.width;
+                    obj.size.width -= dx * 2;
+                    obj.size.height -= dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
                     break;
                 case 'top-right':
-                    obj.position.y += localDy * Math.cos(obj.rotation) - localDx * Math.sin(obj.rotation);
-                    obj.size.width += localDx;
-                    obj.size.height = obj.size.width;
+                    obj.size.width += dx * 2;
+                    obj.size.height -= dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
                     break;
                 case 'bottom-left':
-                    obj.position.x += localDx * Math.cos(obj.rotation);
-                    obj.position.y += localDx * Math.sin(obj.rotation);
-                    obj.size.width -= localDx;
-                    obj.size.height = obj.size.width;
+                    obj.size.width -= dx * 2;
+                    obj.size.height += dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
+                    break;
+                case 'bottom-right':
+                    obj.size.width += dx * 2;
+                    obj.size.height += dy * 2;
+                    if (obj.type === 'image') {
+                        obj.size.height = obj.size.width / aspectRatio;
+                    }
                     break;
             }
-
+            
+            obj.size.width = Math.max(obj.size.width, 20);
+            obj.size.height = Math.max(obj.size.height, 20);
+         
+            
+            // keep object center
+            obj.position.x = centerX - obj.size.width/2;
+            obj.position.y = centerY - obj.size.height/2;
+            
             this.lastPos = { x: mouseX, y: mouseY };
             this.draw();
+            return;
         }
 
+        // Hande rotation
         if (this.isRotating && this.selectedIndex > -1) {
             canvas.style.cursor = 'crosshair';
             const obj = this.objects[this.selectedIndex];
@@ -270,6 +315,7 @@ export class CanvasEditorComponent implements OnInit {
             return;
         }
 
+        // Handle cursor
         if (this.selectedIndex > -1) {
             const obj = this.objects[this.selectedIndex];
             const handle = this.getResizeHandle(mouseX, mouseY, obj);
